@@ -8,7 +8,13 @@
 </head>
 <body>
     
-    <h1>Teste Index</h1>
+    {% if login==True %}
+        <p>Você está logado na conta: "{{ username }}"</p>
+        <p><a href="">deslogar?</a></p>
+    {% endif %}
+    {% if login!=True%}
+        <p>Você não está logado. Faça o login <a href="./login">aqui</a></p>
+    {% endif %}
 
 </body>
 </html>
