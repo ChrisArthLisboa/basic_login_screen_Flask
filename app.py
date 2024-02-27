@@ -2,13 +2,17 @@ import flask
 import mysql.connector
 
 app = flask.Flask(__name__)
+
+
 db = mysql.connector.connect(
     host="localhost",
     user="root",
-    password="",
-    database=""
+    password="123",
+    database="db"
 )
 cursor = db.cursor()
+table = "table"
+
 
 
 # Renders: 
@@ -21,7 +25,7 @@ def index():
 def login():
 
     def valid_login(name, password):
-        if name in cursor.execute("Select name in table"):
+        if name in cursor.execute(f"Select name in {table}"):
             if password == cursor.execute(f"Select password in table where name = {name}"):
                 return True
             else:
@@ -29,30 +33,37 @@ def login():
         else:
             return False
 
-    def log_user(name):
-        return flask.render_template("index.html", login=True, username=name)
-    
-    def existAccount(username, email):
-        account = cursor.execute(f"Select username, email where username={username}")
-            
-
-
-    def createAccount(username, email, password):
-        pass
-
     myError = ""
     if flask.request.method == "POST":
         
         if valid_login(flask.request.form['name'], flask.request.form['password']):
-            return log_user(flask.request.form['name'])
+            return flask.render_template("index.html", login=True, username=flask.request.form['name'])
         else:
             myError = "Invalid name/password"
 
-        if existAccount(flask.request.form['username_register'], flask.request.form['email_register']):
-            createAccount(flask.request.form['username_register'], flask.request.form['email_register'], flask.request.form['password_register'])
-            log_user(flask.request.form['username_register'])
-        else:
-            myError = "name already taken/ email already exists"
-
 
     return flask.render_template("login.html", error=myError)
+
+
+
+@app.route("/register", methods=["GET", "POST"])
+def register():
+
+    def createAccount(name, email, password):
+        cursor.execute(f"insert into {table} (name, email, password) values (\'{name}\', \'{email}\', \'{password}\')")
+        db.commit()
+
+        return flask.render_template("index.html", login=True)
+
+
+    myError=""
+    if flask.request.method == "POST":
+        receives = {"name": flask.request.form['name'], "email": flask.request.form['email'], "password": flask.request.form['password']}
+        cursor.execute(f"Select email from {table}")
+        if ( receives["email"] ) not in cursor.fetchall():
+            createAccount(receives["name"], receives["email"], receives["password"])
+        else:
+            myError = "Email already taken"
+
+
+    return flask.render_template("register.html", error=myError)
